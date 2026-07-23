@@ -1,0 +1,13 @@
+# Build output
+/build/
+build/
+
+# Editor / OS cruft
+*.swp
+.DS_Store
+
+# Compiled objects / binaries
+*.o
+*.obj
+*.exe
+pricing_engine
