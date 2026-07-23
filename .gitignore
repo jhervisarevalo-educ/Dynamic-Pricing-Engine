@@ -12,4 +12,5 @@ build/
 *.exe
 sales_ranking
 
+.vscode
 CLAUDE*
