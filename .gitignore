@@ -10,4 +10,6 @@ build/
 *.o
 *.obj
 *.exe
-pricing_engine
+sales_ranking
+
+CLAUDE*
