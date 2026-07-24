@@ -87,15 +87,20 @@ inline void insertionSort(std::vector<Product>& products) {
 //  Time: O(n log n) in ALL cases. Space: O(n). Stable.
 // ---------------------------------------------------------------------------
 
-// Merges two sorted halves [left..mid] and [mid+1..right] into descending order.
+// Merges two already-sorted halves [left..mid] and [mid+1..right] so that
+// the combined range is sorted in DESCENDING order of unitsSold.
 inline void mergeHalves(std::vector<Product>& products, int left, int mid, int right) {
+    // Copy the two halves into temporary vectors.
     std::vector<Product> leftHalf(products.begin() + left,
-                                  products.begin() + mid + 1);
+                                   products.begin() + mid + 1);
     std::vector<Product> rightHalf(products.begin() + mid + 1,
-                                   products.begin() + right + 1);
+                                    products.begin() + right + 1);
 
-    std::size_t i = 0, j = 0;
-    int k = left;
+    std::size_t i = 0; // index into leftHalf
+    std::size_t j = 0; // index into rightHalf
+    int k = left;      // index into the original vector
+
+    // Pick the larger unitsSold first (descending order).
     while (i < leftHalf.size() && j < rightHalf.size()) {
         if (leftHalf[i].unitsSold >= rightHalf[j].unitsSold) {
             products[k++] = leftHalf[i++];
@@ -103,19 +108,27 @@ inline void mergeHalves(std::vector<Product>& products, int left, int mid, int r
             products[k++] = rightHalf[j++];
         }
     }
-    while (i < leftHalf.size())  products[k++] = leftHalf[i++];
-    while (j < rightHalf.size()) products[k++] = rightHalf[j++];
+
+    // Copy any remaining elements from the left half.
+    while (i < leftHalf.size()) {
+        products[k++] = leftHalf[i++];
+    }
+    // Copy any remaining elements from the right half.
+    while (j < rightHalf.size()) {
+        products[k++] = rightHalf[j++];
+    }
 }
 
-// Recursively splits the range, sorts each half, then merges.
+// Recursively splits the range in half, sorts each half, then merges them.
+// Time complexity: O(n log n).
 inline void mergeSortRange(std::vector<Product>& products, int left, int right) {
     if (left >= right) {
-        return;
+        return; // a range of 0 or 1 element is already sorted
     }
-    int mid = left + (right - left) / 2;
-    mergeSortRange(products, left, mid);
-    mergeSortRange(products, mid + 1, right);
-    mergeHalves(products, left, mid, right);
+    int mid = left + (right - left) / 2;    // avoids potential overflow
+    mergeSortRange(products, left, mid);      // sort left half
+    mergeSortRange(products, mid + 1, right); // sort right half
+    mergeHalves(products, left, mid, right);  // combine the two sorted halves
 }
 
 // Public entry point with the uniform signature used by the registry.
