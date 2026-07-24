@@ -95,26 +95,45 @@ std::string toLower(const std::string& text) {
 //  Small utilities to print products in a neat, aligned table.
 // ============================================================================
 
-// Prints the table header row.
-void printTableHeader() {
+// Calculates the Name and Category column widths from the actual data so long
+// product names or categories are not truncated. Starts from sensible minimums.
+void calculateColumnWidths(const std::vector<Product>& products,
+                           int& nameWidth, int& categoryWidth) {
+    nameWidth     = 22; // minimum width for the Name column
+    categoryWidth = 16; // minimum width for the Category column
+    for (const Product& p : products) {
+        if (static_cast<int>(p.name.length()) > nameWidth) {
+            nameWidth = static_cast<int>(p.name.length());
+        }
+        if (static_cast<int>(p.category.length()) > categoryWidth) {
+            categoryWidth = static_cast<int>(p.category.length());
+        }
+    }
+    nameWidth     += 2; // a little padding between columns
+    categoryWidth += 2;
+}
+
+// Prints the table header row using the given column widths.
+void printTableHeader(int nameWidth, int categoryWidth) {
     std::cout << "\n"
               << std::left
-              << std::setw(6)  << "ID"
-              << std::setw(30) << "Name"
-              << std::setw(16) << "Category"
+              << std::setw(6)          << "ID"
+              << std::setw(nameWidth)     << "Name"
+              << std::setw(categoryWidth) << "Category"
               << std::right
               << std::setw(10) << "Price"
               << std::setw(12) << "Units Sold"
               << "\n";
-    std::cout << std::string(66, '-') << "\n";
+    int totalWidth = 6 + nameWidth + categoryWidth + 10 + 12;
+    std::cout << std::string(totalWidth, '-') << "\n";
 }
 
-// Prints a single product as one aligned table row.
-void printProductRow(const Product& p) {
+// Prints a single product as one aligned table row using the given widths.
+void printProductRow(const Product& p, int nameWidth, int categoryWidth) {
     std::cout << std::left
-              << std::setw(6)  << p.id
-              << std::setw(30) << p.name
-              << std::setw(16) << p.category
+              << std::setw(6)          << p.id
+              << std::setw(nameWidth)     << p.name
+              << std::setw(categoryWidth) << p.category
               << std::right
               << std::setw(10) << std::fixed << std::setprecision(2) << p.price
               << std::setw(12) << p.unitsSold
@@ -159,9 +178,11 @@ void displayAllProducts(const std::vector<Product>& products) {
         std::cout << "\n  No products to display. Add some first.\n";
         return;
     }
-    printTableHeader();
+    int nameWidth, categoryWidth;
+    calculateColumnWidths(products, nameWidth, categoryWidth);
+    printTableHeader(nameWidth, categoryWidth);
     for (const Product& p : products) {
-        printProductRow(p);
+        printProductRow(p, nameWidth, categoryWidth);
     }
     std::cout << "\nTotal products: " << products.size() << "\n";
 }
@@ -246,21 +267,26 @@ void searchProduct(const std::vector<Product>& products) {
         if (found == nullptr) {
             std::cout << "  No product found with ID " << id << ".\n";
         } else {
-            printTableHeader();
-            printProductRow(*found);
+            int nameWidth, categoryWidth;
+            calculateColumnWidths(products, nameWidth, categoryWidth);
+            printTableHeader(nameWidth, categoryWidth);
+            printProductRow(*found, nameWidth, categoryWidth);
         }
     } else if (choice == 2) {
         std::string term = toLower(readLine("Enter Product Name (or part of it): "));
         bool found = false;
 
+        int nameWidth, categoryWidth;
+        calculateColumnWidths(products, nameWidth, categoryWidth);
+
         // Linear scan: show every product whose name contains the search term.
         for (const Product& p : products) {
             if (toLower(p.name).find(term) != std::string::npos) {
                 if (!found) {
-                    printTableHeader(); // print header once, before first match
+                    printTableHeader(nameWidth, categoryWidth); // header once, before first match
                     found = true;
                 }
-                printProductRow(p);
+                printProductRow(p, nameWidth, categoryWidth);
             }
         }
         if (!found) {
@@ -341,10 +367,12 @@ void displayTopSelling(const std::vector<Product>& products) {
     std::vector<Product> ranked = products;
     sortalgo::mergeSort(ranked);
 
+    int nameWidth, categoryWidth;
+    calculateColumnWidths(ranked, nameWidth, categoryWidth);
     int count = std::min(5, static_cast<int>(ranked.size()));
-    printTableHeader();
+    printTableHeader(nameWidth, categoryWidth);
     for (int i = 0; i < count; ++i) {
-        printProductRow(ranked[i]); // highest sales are at the front
+        printProductRow(ranked[i], nameWidth, categoryWidth); // highest first
     }
 }
 
@@ -360,12 +388,14 @@ void displayLowestSelling(const std::vector<Product>& products) {
     std::vector<Product> ranked = products;
     sortalgo::mergeSort(ranked);
 
+    int nameWidth, categoryWidth;
+    calculateColumnWidths(ranked, nameWidth, categoryWidth);
     int total = static_cast<int>(ranked.size());
     int count = std::min(5, total);
-    printTableHeader();
+    printTableHeader(nameWidth, categoryWidth);
     // The lowest sellers are at the END of the descending-sorted list.
     for (int i = total - count; i < total; ++i) {
-        printProductRow(ranked[i]);
+        printProductRow(ranked[i], nameWidth, categoryWidth);
     }
 }
 
